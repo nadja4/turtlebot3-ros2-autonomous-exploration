@@ -13,55 +13,21 @@ TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
 def launch_setup(context, *args, **kwargs):
 
     map_name = LaunchConfiguration('map_name', default='map10')
-    world_file_name = map_name.perform(context) + '.world.xml'
-    world = os.path.join(get_package_share_directory('explorer_gazebo'), 'worlds', world_file_name)
-    
-    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
     nav2_file_dir = get_package_share_directory('turtlebot3_navigation2')
-    gazebo_launch_file_dir = os.path.join(get_package_share_directory('turtlebot3_gazebo'), 'launch')
-    cartographer_launch_file_dir = os.path.join(get_package_share_directory('explorer_cartographer'), 'launch')
-
-    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
+ 
+    use_sim_time = LaunchConfiguration('use_sim_time', default='false')
     x_pose = LaunchConfiguration('x_pose', default='2.0')
     y_pose = LaunchConfiguration('y_pose', default='3.0')
 
     param_file_name = TURTLEBOT3_MODEL + '.yaml'
 
-    gzserver_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
-        ),
-        launch_arguments={'world': world}.items()
-    )
-
-    gzclient_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')
-        )
-    )
-
-    robot_state_publisher_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(gazebo_launch_file_dir, 'robot_state_publisher.launch.py')
-        ),
-        launch_arguments={'use_sim_time': use_sim_time}.items()
-    )
-
-    spawn_turtlebot_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(gazebo_launch_file_dir, 'spawn_turtlebot3.launch.py')
-        ),
-        launch_arguments={
-            'x_pose': x_pose,
-            'y_pose': y_pose
-        }.items()
-    )
-
     cartographer_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(cartographer_launch_file_dir, 'cartographer.launch.py')
+            os.path.join(get_package_share_directory('turtlebot3_cartographer'), 'launch', 'cartographer.launch.py')
         ),
-        launch_arguments={'use_sim_time': use_sim_time}.items(),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+        }.items()
     )
 
     nav2_cmd = IncludeLaunchDescription(
@@ -97,14 +63,10 @@ def launch_setup(context, *args, **kwargs):
     )
 
     return [
-        gzserver_cmd,
-        gzclient_cmd,
-        robot_state_publisher_cmd,
-        spawn_turtlebot_cmd,
         cartographer_cmd,
         nav2_cmd,
         wanderer_cmd,
-        discoverer_cmd,
+        # discoverer_cmd,
         watchtower_cmd,
     ]
 
