@@ -12,7 +12,7 @@ TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
 
 def launch_setup(context, *args, **kwargs):
 
-    map_name = LaunchConfiguration('map_name', default='map10')
+    # map_name = LaunchConfiguration('map_name', default='map10')
     nav2_file_dir = get_package_share_directory('turtlebot3_navigation2')
  
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
@@ -54,20 +54,20 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
-    watchtower_cmd = Node(
-        package='explorer_map_utils',
-        executable='watchtower',
-        name='watchtower',
-        output='screen',
-        parameters=[{'map_name': map_name}],
-    )
+    # watchtower_cmd = Node(
+    #     package='explorer_map_utils',
+    #     executable='watchtower',
+    #     name='watchtower',
+    #     output='screen',
+    #     parameters=[{'map_name': map_name}],
+    # )
 
     return [
         cartographer_cmd,
         nav2_cmd,
         wanderer_cmd,
         # discoverer_cmd,
-        watchtower_cmd,
+        # watchtower_cmd,
     ]
 
 
