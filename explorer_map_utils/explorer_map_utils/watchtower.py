@@ -11,8 +11,6 @@ from std_msgs.msg import Float32
 from rclpy.exceptions import ParameterNotDeclaredException
 from rcl_interfaces.msg import ParameterType
 
-
-
 class Subscriber(Node):
 
     def __init__(self):
@@ -26,39 +24,32 @@ class Subscriber(Node):
         # Define publisher
         self.publisher_ = self.create_publisher(Float32, 'map_progress', 10)
         self.free_thresh = 0.25
-        # Declare map_name parameter
-        self.declare_parameter('map_name', 'map10')
-        map_name_param = self.get_parameter('map_name') 
-        self.get_logger().info('Map selected = %s' % (str(map_name_param.value),))
-        # Declare map_size parameter
-        self.declare_parameter('map_size')
-        map_size_param = self.get_parameter('map_size') 
-        # Read map file
-        package_share_directory = get_package_share_directory('explorer_gazebo')
-        map_folder_directory = os.path.join(package_share_directory, 'maps')
-        map_file = os.path.join(map_folder_directory, map_name_param.value + '.csv')
-        try:
-            df=pd.read_csv(map_file, sep=',',header=None)
-        except:
-            self.get_logger().error('Could not find map file')
-            raise FileNotFoundError
-        sim_map_array = df.values
-        sim_map_resolution = 0.5**2
-        if not map_size_param.value:
-            self.free_space = numpy.count_nonzero(sim_map_array == 0) * sim_map_resolution
-        else:
-            self.free_space = map_size_param.value
-        self.subscription  # prevent unused variable warning
+        self.percentage_explored = 0.0
+
+    def check_map_completion(self):
+        if self.map_data is None:
+            return
+        
+        # Überprüfe die Kartendaten
+        unexplored_cells = sum(1 for cell in self.map_data.data if cell == -1)
+        total_cells = len(self.map_data.data)
+        explored_cells = total_cells - unexplored_cells
+        self.get_logger().info('Unexplored cells: %s, total cells: %s' %(unexplored_cells, total_cells))
+
+        self.percentage_explored = explored_cells / total_cells
+
+        # Definiere einen Schwellenwert für die Vollständigkeit der Karte
+        if unexplored_cells < (total_cells * 0.01):  # z.B. weniger als 1% der Karte ist unerforscht
+            self.get_logger().info('Die gesamte Karte wurde erfolgreich aufgezeichnet.')
 
     def listener_callback(self, msg):
-        map_array = numpy.asarray(msg.data)
-        resolution = msg.info.resolution
-        map_explored = numpy.count_nonzero((map_array <= self.free_thresh) & (map_array > -1)) * resolution**2
-        percentage_explored = map_explored/self.free_space
+        self.map_data = msg
+        self.check_map_completion()
+        percentage_explored = self.percentage_explored
         map_explored_msg = Float32()
         if percentage_explored > 1.0:
             percentage_explored = 1.0
-        map_explored_msg.data = percentage_explored
+        map_explored_msg.data = self.percentage_explored
         self.publisher_.publish(map_explored_msg)
 
 def main(args=None):

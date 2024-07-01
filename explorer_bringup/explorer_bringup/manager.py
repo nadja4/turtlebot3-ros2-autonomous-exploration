@@ -46,6 +46,7 @@ class Manager(Node):
             duration=str(int((time_now.nanoseconds-self.start_time.nanoseconds)/(10**9)))
             self.get_logger().info("Duration: %s s - Map: %s - Distance: %s m " %(duration, self.map_explored, self.trajectory_distance))
         except:
+            self.get_logger().warn("Print feedback exception")
             pass
 
     def timer_callback(self):

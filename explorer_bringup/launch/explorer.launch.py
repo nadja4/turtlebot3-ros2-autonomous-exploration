@@ -54,20 +54,20 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
-    # watchtower_cmd = Node(
-    #     package='explorer_map_utils',
-    #     executable='watchtower',
-    #     name='watchtower',
-    #     output='screen',
-    #     parameters=[{'map_name': map_name}],
-    # )
+    watchtower_cmd = Node(
+        package='explorer_map_utils',
+        executable='watchtower',
+        name='watchtower',
+        output='screen',
+        # parameters=[{'map_name': map_name}],
+    )
 
     return [
         cartographer_cmd,
         nav2_cmd,
         wanderer_cmd,
-        # discoverer_cmd,
-        # watchtower_cmd,
+        discoverer_cmd,
+        watchtower_cmd,
     ]
 
 
